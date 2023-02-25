@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../model/User");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv").config();
+const { registerValidation, loginValidation } = require("../utils/validation");
 
 // Get Users
 const getUsers = async (req, res) => {
@@ -78,13 +82,19 @@ const register = async (req, res) => {
   const { name, email, password } = req.body;
 
   const { error } = registerValidation(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) {
+    const messages = error.details.map((el) => el.message);
+    return res.status(400).json({ data: { message: messages }, status: 400 });
+  }
 
   const emailExist = await User.findOne({ email: email });
-  if (emailExist) return res.status(400).send("Email already exists");
+  if (emailExist)
+    return res
+      .status(400)
+      .json({ data: { message: "Email already exists" }, status: 400 });
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const salt = await bcrypt.genSaltSync(10);
+  const hashedPassword = await bcrypt.hashSync(password, salt);
 
   const user = new User({
     name,
@@ -93,7 +103,7 @@ const register = async (req, res) => {
   });
   try {
     const userSaved = await user.save();
-    res.send({ user: user._id });
+    res.status(200).json({ data: { user: userSaved._id }, status: 200 });
   } catch (err) {
     res.status(400).send(err);
   }
@@ -104,16 +114,27 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   const { error } = loginValidation(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) {
+    const messages = error.details.map((el) => el.message);
+    return res.status(400).json({ data: { message: messages }, status: 400 });
+  }
 
-  const user = User.findOne({ email: email });
-  if (!user) return res.status(400).send("User not found");
+  const user = await User.findOne({ email: email });
+  if (!user)
+    return res
+      .status(400)
+      .json({ data: { message: "Email is not found" }, status: 400 });
 
   const validPass = await bcrypt.compareSync(password, user.password);
-  if (!validPass) return res.status(400).send("Invalid password");
+  if (!validPass)
+    return res
+      .status(400)
+      .json({ data: { message: "Invalid password" }, status: 400 });
 
   const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
-  res.header("auth-token", token).send(token);
+  res
+    .header("auth-token", token)
+    .json({ data: { token: token, user: user._id }, status: 200 });
 };
 
 module.exports = {
