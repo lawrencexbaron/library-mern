@@ -4,6 +4,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv").config();
 const app = express();
+const logger = require("./utils/logger");
+
 // Import routes
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
@@ -26,7 +28,10 @@ mongoose
     });
   })
   .catch((err) => {
+    logger.error(err);
     console.log(err);
   });
 
 // Import Routes
+app.use("/api/user", userRoutes);
+app.use("/api/book", bookRoutes);
