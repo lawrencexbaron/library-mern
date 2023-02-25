@@ -1,30 +1,45 @@
 const express = require("express");
 const router = express.Router();
 const Book = require("../model/Book");
+const mongoose = require("mongoose");
+const { bookValidation } = require("../utils/validation");
 
 // Get Books
 const getBooks = async (req, res) => {
   try {
     const books = await Book.find();
-    res.json(books);
+    res.status(200).json({ data: books });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ data: { message: err } });
   }
 };
 
 // Get Book by ID
 const getBookById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ data: `No book with that ${id}` });
+  }
+
   try {
-    const book = await Book.findById(req.params.bookId);
-    res.json(book);
+    const book = await Book.findById(id);
+    return res.status(200).json({ data: book });
   } catch (err) {
-    res.json({ message: err });
+    return res.json({ message: err });
   }
 };
 
 // Create Book
 const createBook = async (req, res) => {
   const { title, author, pages, genre, price, publisher } = req.body;
+
+  // Validate data
+  const { error } = bookValidation(req.body);
+  if (error) {
+    const messages = error.details.map((el) => el.message);
+    return res.status(400).json({ data: messages });
+  }
 
   const book = new Book({
     title,
@@ -37,7 +52,7 @@ const createBook = async (req, res) => {
 
   try {
     const savedBook = await book.save();
-    res.json(savedBook);
+    res.status(201).json({ data: savedBook });
   } catch (err) {
     res.json({ message: err });
   }
@@ -47,9 +62,22 @@ const createBook = async (req, res) => {
 const updateBook = async (req, res) => {
   const { title, author, pages, genre, price, publisher } = req.body;
 
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ data: `No book with that ${id}` });
+  }
+
+  // Validate data
+  const { error } = bookValidation(req.body);
+  if (error) {
+    const messages = error.details.map((el) => el.message);
+    return res.status(400).json({ data: messages });
+  }
+
   try {
-    const updatedBook = await Book.updateOne(
-      { _id: req.params.bookId },
+    const updatedBook = await Book.findByIdAndUpdate(
+      { _id: id },
       {
         $set: {
           title,
@@ -61,7 +89,9 @@ const updateBook = async (req, res) => {
         },
       }
     );
-    res.json(updatedBook);
+    const newUpdated = await Book.findById(id);
+
+    res.status(201).json({ data: newUpdated });
   } catch (err) {
     res.json({ message: err });
   }
@@ -70,9 +100,15 @@ const updateBook = async (req, res) => {
 // Delete Book
 
 const deleteBook = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ data: `No book with that ${id}` });
+  }
+
   try {
-    const removedBook = await Book.remove({ _id: req.params.bookId });
-    res.json(removedBook);
+    await Book.findByIdAndRemove(id);
+    res.status(200).json({ data: "Book deleted successfully" });
   } catch (err) {
     res.json({ message: err });
   }
