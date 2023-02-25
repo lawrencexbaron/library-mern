@@ -13,15 +13,15 @@ const {
 router.get("/", getBooks);
 
 // Get Book by ID
-router.get("/:bookId", getBookById);
+router.get("/:id", getBookById);
 
 // Create Book
 router.post("/", createBook);
 
 // Update Book
-router.patch("/:bookId", updateBook);
+router.patch("/:id", updateBook);
 
 // Delete Book
-router.delete("/:bookId", deleteBook);
+router.delete("/:id", deleteBook);
 
 module.exports = router;
