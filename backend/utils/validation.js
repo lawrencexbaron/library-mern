@@ -5,6 +5,11 @@ const baseOption = {
   abortEarly: false,
   allowUnknown: true,
   stripUnknown: true,
+  errors: {
+    wrap: {
+      label: "",
+    },
+  },
 };
 
 // validateBook
@@ -20,13 +25,34 @@ const bookValidation = (data) => {
   return schema.validate(data, baseOption);
 };
 
-// validateUser
-const userValidation = (data) => {
+// Register Validation
+const registerValidation = (data) => {
   const schema = joi.object({
-    name: joi.string().required(),
+    name: joi.string().required().messages({
+      "string.required": "Name is required",
+      "string.empty": "Name is required",
+    }),
+    email: joi.string().required().email().messages({
+      "string.email": "Email must be a valid email",
+      "string.required": "Email is required",
+      "string.empty": "Email is required",
+    }),
+    password: joi.string().required().min(6).messages({
+      "string.min": "Password must be at least 6 characters",
+      "string.required": "Password is required",
+      "string.empty": "Password is required",
+    }),
+    role: joi.string(),
+  });
+
+  return schema.validate(data, baseOption);
+};
+
+// Login Validation
+const loginValidation = (data) => {
+  const schema = joi.object({
     email: joi.string().required().email(),
     password: joi.string().required().min(6),
-    role: joi.string(),
   });
 
   return schema.validate(data, baseOption);
@@ -34,5 +60,6 @@ const userValidation = (data) => {
 
 module.exports = {
   bookValidation,
-  userValidation,
+  registerValidation,
+  loginValidation,
 };
