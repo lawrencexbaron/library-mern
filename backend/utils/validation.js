@@ -51,8 +51,16 @@ const registerValidation = (data) => {
 // Login Validation
 const loginValidation = (data) => {
   const schema = joi.object({
-    email: joi.string().required().email(),
-    password: joi.string().required().min(6),
+    email: joi.string().required().email().messages({
+      "string.email": "Email must be a valid email",
+      "string.required": "Email is required",
+      "string.empty": "Email is required",
+    }),
+    password: joi.string().required().min(6).messages({
+      "string.min": "Password must be at least 6 characters",
+      "string.required": "Password is required",
+      "string.empty": "Password is required",
+    }),
   });
 
   return schema.validate(data, baseOption);
