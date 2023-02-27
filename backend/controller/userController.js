@@ -77,6 +77,10 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const createToken = (_id) => {
+  return jwt.sign({ _id }, process.env.TOKEN_SECRET, { expiresIn: "3d" });
+};
+
 // Register User
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -84,14 +88,14 @@ const register = async (req, res) => {
   const { error } = registerValidation(req.body);
   if (error) {
     const messages = error.details.map((el) => el.message);
-    return res.status(400).json({ data: { message: messages }, status: 400 });
+    return res.status(400).json({ message: messages, status: 400 });
   }
 
   const emailExist = await User.findOne({ email: email });
   if (emailExist)
     return res
       .status(400)
-      .json({ data: { message: "Email already exists" }, status: 400 });
+      .json({ message: "Email already exists", status: 400 });
 
   const salt = await bcrypt.genSaltSync(10);
   const hashedPassword = await bcrypt.hashSync(password, salt);
@@ -103,7 +107,21 @@ const register = async (req, res) => {
   });
   try {
     const userSaved = await user.save();
-    res.status(200).json({ data: { user: userSaved._id }, status: 200 });
+    // create and assign a token
+    const token = createToken(userSaved._id);
+
+    res
+      .status(200)
+      .header("auth-token", token)
+      .json({
+        user: {
+          id: userSaved._id,
+          name: userSaved.name,
+          email: userSaved.email,
+          role: userSaved.role,
+        },
+        token: token,
+      });
   } catch (err) {
     res.status(400).send(err);
   }
@@ -116,25 +134,29 @@ const login = async (req, res) => {
   const { error } = loginValidation(req.body);
   if (error) {
     const messages = error.details.map((el) => el.message);
-    return res.status(400).json({ data: { message: messages }, status: 400 });
+    return res.status(400).json({ message: messages });
   }
 
   const user = await User.findOne({ email: email });
-  if (!user)
-    return res
-      .status(400)
-      .json({ data: { message: "Email is not found" }, status: 400 });
+  if (!user) return res.status(400).json({ message: "Email is not found" });
 
   const validPass = await bcrypt.compareSync(password, user.password);
   if (!validPass)
-    return res
-      .status(400)
-      .json({ data: { message: "Invalid password" }, status: 400 });
+    return res.status(400).json({ message: "Invalid password", status: 400 });
 
-  const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+  const token = createToken(user._id);
   res
     .header("auth-token", token)
-    .json({ data: { token: token, user: user._id }, status: 200 });
+    .status(200)
+    .json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token: token,
+    });
 };
 
 module.exports = {

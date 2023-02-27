@@ -15,12 +15,31 @@ const baseOption = {
 // validateBook
 const bookValidation = (data) => {
   const schema = joi.object({
-    title: joi.string().required(),
-    author: joi.string().required(),
-    pages: joi.number().required(),
-    genre: joi.string().required(),
-    price: joi.number().required(),
-    publisher: joi.string().required(),
+    title: joi.string().required().messages({
+      "string.required": "Title is required",
+      "string.empty": "Title is required",
+    }),
+    author: joi.string().required().messages({
+      "string.required": "Author is required",
+      "string.empty": "Author is required",
+    }),
+    pages: joi.number().required().messages({
+      "number.required": "Pages is required",
+      "number.empty": "Pages is required",
+    }),
+    genre: joi.string().required().messages({
+      "string.required": "Genre is required",
+      "string.empty": "Genre is required",
+    }),
+    price: joi.number().required().messages({
+      "number.required": "Price is required",
+      "number.empty": "Price is required",
+      "number.base": "Price must be a number",
+    }),
+    publisher: joi.string().required().messages({
+      "string.required": "Publisher is required",
+      "string.empty": "Publisher is required",
+    }),
   });
   return schema.validate(data, baseOption);
 };
