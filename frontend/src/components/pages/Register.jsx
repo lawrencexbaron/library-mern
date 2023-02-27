@@ -4,55 +4,24 @@ import Input from "../forms/Input";
 import Alert from "../forms/Alert";
 import Card from "../forms/Card";
 import Button from "../forms/Button";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { useSignup } from "../../hooks/useSignup";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordCheck, setPasswordCheck] = useState("");
   const [name, setName] = useState("");
-  const [error, setError] = useState([]);
-  const [success, setSuccess] = useState(false);
+  const { signup, error, success } = useSignup();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError([]);
-    setSuccess(false);
 
-    if (!email || !password || !passwordCheck || !name) {
-      return setError("Please enter all fields");
-    }
-    // Check if passwords match
-    if (password !== passwordCheck) {
-      return setError("Passwords do not match");
-    }
-    // Axios post request to backend to login
-    axios
-      .post("http://localhost:4000/api/user/register", {
-        email,
-        password,
-        passwordCheck,
-        name,
-      })
-      .then((res) => {
-        // Set token to local storage
-        localStorage.setItem("auth-token", res.data.data.token);
-        // Add success to state
-        setSuccess(true);
-        setEmail("");
-        setPassword("");
-        setPasswordCheck("");
-        setName("");
-      })
-      .catch((err) => {
-        // Add error to state
-        setError(err.response.data.data.message);
-        setSuccess(false);
-        console.log(err.response.data.data.message);
-      });
-
-    setError([]);
+    await signup(email, password, passwordCheck, name);
+    setEmail("");
+    setPassword("");
+    setPasswordCheck("");
+    setName("");
   };
 
   return (
