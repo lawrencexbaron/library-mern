@@ -4,50 +4,17 @@ import Input from "../forms/Input";
 import Alert from "../forms/Alert";
 import Card from "../forms/Card";
 import Button from "../forms/Button";
-import Modal from "../forms/Modal";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { useLogin } from "../../hooks/useLogin";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState([]);
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, error, success, isLoading } = useLogin();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError([]);
-
-    setIsLoading(true);
-
-    if (!email || !password) {
-      setError("Please enter all fields");
-    }
-    // Axios post request to backend to login
-    axios
-      .post("http://localhost:4000/api/user/login", {
-        email,
-        password,
-      })
-      .then((res) => {
-        // Set token to local storage
-        localStorage.setItem("auth-token", res.data.data.token);
-        // Add success to state
-        setSuccess(true);
-        console.log(res.data.data);
-      })
-      .catch((err) => {
-        // Add error to state
-        setError(err.response.data.data.message);
-        setSuccess(false);
-        console.log(err.response.data.data.message);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-
-    setError([]);
+    await login(email, password);
   };
 
   return (
