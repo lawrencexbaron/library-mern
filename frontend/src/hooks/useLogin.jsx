@@ -18,27 +18,23 @@ export const useLogin = () => {
     }
 
     // Axios post request to backend to login
-    axios
-      .post("http://localhost:4000/api/user/login", {
+    try {
+      setIsLoading(true);
+      const res = await axios.post("http://localhost:4000/api/user/login", {
         email,
         password,
-      })
-      .then((res) => {
-        // Set token to local storage
-        localStorage.setItem("auth-token", res.data.token);
-        // Add success to state
-        setSuccess(true);
-        dispatch({ type: "LOGIN", payload: res.data.user });
-      })
-      .catch((err) => {
-        setError(err.response.data.message);
-        setSuccess(false);
-      })
-      .finally(() => {
-        setIsLoading(false);
       });
-
-    setError([]);
+      // Set token to local storage
+      localStorage.setItem("auth-token", res.data.token);
+      // Add success to state
+      setSuccess(true);
+      dispatch({ type: "LOGIN", payload: res.data.user });
+    } catch (err) {
+      setError(err.response.data.message);
+      setSuccess(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
   return { login, error, success, isLoading };
 };

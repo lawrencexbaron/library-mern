@@ -24,26 +24,22 @@ const Home = () => {
   }, []);
 
   const fetchBooks = async () => {
-    const response = await axios
-      .get("http://localhost:4000/api/book")
-      .then((res) => {
-        dispatch({ type: "FETCH_BOOKS", payload: res.data.data });
-      })
-      .catch((err) => {
-        console.log("Error: ", err);
-      });
+    try {
+      const res = await axios.get("http://localhost:4000/api/book");
+      dispatch({ type: "FETCH_BOOKS", payload: res.data.data });
+    } catch (err) {
+      console.log(err);
+    }
     // const data = await response.json();
   };
 
   const deleteBook = async (id) => {
-    await axios
-      .delete(`http://localhost:4000/api/book/${id}`)
-      .then((res) => {
-        dispatch({ type: "DELETE_BOOK", payload: id });
-      })
-      .catch((err) => {
-        console.log("Error: ", err);
-      });
+    try {
+      await axios.delete(`http://localhost:4000/api/book/${id}`);
+      dispatch({ type: "DELETE_BOOK", payload: id });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleSubmit = (e) => {

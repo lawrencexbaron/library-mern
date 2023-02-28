@@ -20,28 +20,23 @@ export const useSignup = () => {
       return setError("Passwords do not match");
     }
     // Axios post request to backend to login
-    axios
-      .post("http://localhost:4000/api/user/register", {
+    try {
+      const res = await axios.post("http://localhost:4000/api/user/register", {
         email,
         password,
         passwordCheck,
         name,
-      })
-      .then((res) => {
-        console.log(res.data);
-        // Set token to local storage
-        localStorage.setItem("auth-token", res.data.token);
-        // Add success to state
-        setSuccess(true);
-        dispatch({ type: "LOGIN", payload: res.data });
-      })
-      .catch((err) => {
-        // Add error to state
-        setError(err.response.data.message);
-        setSuccess(false);
       });
-
-    setError([]);
+      // Set token to local storage
+      localStorage.setItem("auth-token", res.data.token);
+      // Add success to state
+      setSuccess(true);
+      dispatch({ type: "LOGIN", payload: res.data });
+    } catch (err) {
+      // Add error to state
+      setError(err.response.data.message);
+      setSuccess(false);
+    }
   };
   return { signup, error, success };
 };
